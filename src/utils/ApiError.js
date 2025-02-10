@@ -1,4 +1,4 @@
-class ApiError extends Error {
+class ApiError extends Error { // The purpose of this class is to standardize the error response that will be sent to the client.
     constructor(
         statusCode,
         message = "Something went wrong",
