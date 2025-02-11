@@ -80,24 +80,24 @@ const loginUser = asyncHandler(async (req, res) => {
   const {email, username, password} = req.body;
 
   if(!email && !username){
-    throw new ApiError(400, "Email or username is required");
+    throw new ApiError(400, "Email or username is required"); // Throw error if both email and username are not provided 
   }
 
-  const user = await User.findOne({ $or: [{ email }, { username }] });
+  const user = await User.findOne({ $or: [{ email }, { username }] }); // Find user by email or username
 
   if(!user){
-    throw new ApiError(404, "User does not exist");
+    throw new ApiError(404, "User does not exist"); // Throw error if user does not exist
   }
 
-  const isPasswordValid = await user.ispasswordCorrect(password);
+  const isPasswordValid = await user.ispasswordCorrect(password); // Check if the password is correct using the custom method that we made in user.model.js
 
   if(!isPasswordValid){
-    throw new ApiError(401, "Invalid user credentials");
+    throw new ApiError(401, "Invalid user credentials"); // Throw error if password is incorrect
   }
 
-  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id);
+  const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id); // Generate access and refresh tokens
 
-  const loggedInUser = await User.findById(user._id).select("-password -refreshToken");
+  const loggedInUser = await User.findById(user._id).select("-password -refreshToken"); // Creating a new variable because the old one has password and refresh token
 
   const options = {
     httpOnly: true,
