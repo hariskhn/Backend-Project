@@ -148,7 +148,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       throw new ApiError(401, "Invalid refresh token");
     }
   
-    if(user.refreshToken !== incomingRefreshToken){ //Why are we checking the token that we took from the cookies of the user, and then decoding it and then checking it with the token that we have in the database? 
+    if(user.refreshToken !== incomingRefreshToken){ //this checks if the incomingRefreshToken is the same as the one stored in database or is it an old one
       throw new ApiError(401, "Invalid refresh token");
     }
   
@@ -157,7 +157,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
       secure: true
     }
   
-    const {accessToken, refreshToken} = await generateAccessAndRefreshTokens(user._id); //Wouldn't this generate a new refresh token aswell? don't we only need an access token?
+    const {accessToken, refreshToken} = await generateAccessAndRefreshTokens(user._id);
   
     return res
     .status(200)
