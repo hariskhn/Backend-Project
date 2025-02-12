@@ -175,7 +175,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 const changeCurrentPassword = asyncHandler(async (req, res) => {
   const {oldPassword, newPassword} = req.body; // How does the req.body has oldPassword and newPassword? It's because we are sending it from the client side
 
-  const user = await User.findById(req.user._id);// How does req have user? 
+  const user = await User.findById(req.user._id);// req.user is from the verifyJWT middleware
   const isPasswordValid = await user.ispasswordCorrect(oldPassword);
 
   if(!isPasswordValid){
@@ -218,7 +218,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 });
 
 const updateUserAvatar = asyncHandler(async (req, res) => {
-  const avatarLocalPath = req.file?.path;
+  const avatarLocalPath = req.file?.path; // req.file is from the multer middleware which already stored the files in temp fodler and added the path to the files in req.file
 
   if(!avatarLocalPath){
     throw new ApiError(400, "Avatar file is missing");
