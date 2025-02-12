@@ -133,7 +133,7 @@ const logoutUser = asyncHandler(async (req, res) => {
 });
 
 const refreshAccessToken = asyncHandler(async (req, res) => {
-  const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken; // why req.body.refreshToken and not req.headers.authorization?
+  const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken; // It's req.body.refreshToken because refresh tokens are always sent in body and not in headers for security reasons as they are long-lived.
 
   if(!incomingRefreshToken){
     throw new ApiError(401, "Unauthorized request");
@@ -142,7 +142,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
   try {
     const decodedToken = jwt.verify(incomingRefreshToken, process.env.REFRESH_TOKEN_SECRET);
   
-    const user = await User.findById(decodedToken.id);
+    const user = await User.findById(decodedToken._id);
   
     if(!user){
       throw new ApiError(401, "Invalid refresh token");
