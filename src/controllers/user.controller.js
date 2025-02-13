@@ -4,6 +4,7 @@ import {User} from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import jwt from "jsonwebtoken";
+import e from 'express';
 
 const generateAccessAndRefreshTokens = async (userId) => {
   try {
@@ -217,6 +218,7 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
 
 });
 
+// Task: Delete the old avatar from cloudinary when the user updates the avatar
 const updateUserAvatar = asyncHandler(async (req, res) => {
   const avatarLocalPath = req.file?.path; // req.file is from the multer middleware which already stored the files in temp fodler and added the path to the files in req.file
 
@@ -273,6 +275,70 @@ const updateUserCoverImage = asyncHandler(async(req, res) => {
   .json(new ApiResponse(200, user, "Cover image updated successfully"));
 })
 
+const getUserChannelProfile = asyncHandler(async (req, res) => {
+  const {username} = req.params; // when we use /{username} in the route, we can access it using req.params.username and if the user doesn't exist then it will be undefined
+
+  if(!username?.trim()){ // here the trim() method is used to remove any white spaces from the username, but why would there be whitespace in a url? It's because the user might accidentally add a space at the end of the username in the url
+    throw new ApiError(400, "Username is missing");
+  }
+
+  const channel = await User.aggregate([
+    {
+      $match: {username: username.toLowerCase()} //username of the channel
+    },
+    {
+      $lookup:{ // we are using lookup to get the number of subscribers for the channel
+        from: "subscriptions", // Collection to be joined into user collection
+        localField: "_id", // _id of the user collection
+        foreignField: "channel", // same user id in the subscriptions collection should be stored in the channel field of the subscriptions collection
+        as: "subscribers" // we are storing the result in the subscribers field
+      }
+    },
+    {
+      $lookup: {
+        from: "subscriptions",
+        localField: "_id",
+        foreignField: "subscriber",
+        as: "subscribedTo"
+      }
+    },
+    {
+      $addFields:{
+        subscribersCount: { $size: "$subscribers" },
+        subscribedToCount: { $size: "$subscribedTo" },
+        isSubscribed: {
+          $cond: {
+            if: { $in: [req.user._id, "$subscribers.subscriber"] },
+            then: true,
+            else: false
+          }
+        }
+      }
+    },
+    {
+      $project: {
+        fullName: 1,
+        username: 1,
+        subscribersCount: 1,
+        subscribedToCount: 1,
+        isSubscribed: 1,
+        avatar: 1,
+        coverImage: 1,
+        email: 1
+      }
+    }
+  ])
+
+  if(!channel?.length){
+    throw new ApiError(404, "Channel not found");
+  }
+
+  return res
+  .status(200)
+  .json(new ApiResponse(200, channel[0], "Channel fetched successfully"));
+
+})
+
 export {
   registerUser,
   loginUser,
@@ -282,5 +348,6 @@ export {
   getCurrentUser,
   updateAccountDetails,
   updateUserAvatar,
-  updateUserCoverImage
+  updateUserCoverImage,
+  getUserChannelProfile
 };
