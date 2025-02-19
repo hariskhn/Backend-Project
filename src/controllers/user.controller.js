@@ -62,8 +62,8 @@ const registerUser = asyncHandler(async (req, res) => {
     email,
     fullName,
     password,
-    avatar: avatar.url,
-    coverImage: coverImage?.url || "",
+    avatar: avatar.secure_url,
+    coverImage: coverImage?.secure_url || "",
   });
 
   const createdUser = await User.findById(user._id).select("-password -refreshToken");
@@ -379,8 +379,8 @@ const getWatchHistory = asyncHandler(async (req, res) => {
   ])
 
   return res
-  .status(200)
-  .json(new ApiResponse(200, user[0].watchHistory, "Watch history fetched successfully"));
+    .status(200)
+    .json(new ApiResponse(200, user[0].watchHistory, "Watch history fetched successfully"));
 });
 
 export {
