@@ -1,4 +1,5 @@
 import { v2 as cloudinary } from 'cloudinary';
+import { ApiError } from "../utils/ApiError.js"
 import fs from 'fs';
 
 cloudinary.config({ 
@@ -23,7 +24,30 @@ const uploadOnCloudinary = async (localFilePath) => {
     }
 }
 
-export { uploadOnCloudinary }
+const deleteFromCloudinary = async (fileUrl) => {
+    try {
+        if (!fileUrl) return null;
+
+        const matches = fileUrl.match(/\/upload\/(?:v\d+\/)?(.+)\./);
+        const publicId = matches ? matches[1] : null;
+
+        if (!publicId) {
+            console.error("Failed to extract public ID");
+            return null;
+        }
+
+        const response = await cloudinary.uploader.destroy(publicId);
+        console.log("File deleted from Cloudinary:", response);
+
+        return response;
+    } catch (error) {
+        console.error("Error deleting from Cloudinary:", error);
+        return null;
+    }
+};
+
+
+export { uploadOnCloudinary, deleteFromCloudinary }
 
 // (async function() {
 
